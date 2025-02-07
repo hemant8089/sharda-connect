@@ -1,3 +1,4 @@
+//src/components/RightSection.tsx
 "use client";
 
 import { useState } from "react";
@@ -7,11 +8,19 @@ import interactionPlugin from "@fullcalendar/interaction";
 import Modal from "@/components/Modal";
 import { EventClickArg } from "@fullcalendar/core";
 
+// Define event type
+interface EventData {
+  id: string;
+  title: string;
+  date: string;
+  description: string;
+}
+
 export default function RightSection() {
-  const [selectedEvent, setSelectedEvent] = useState<any>(null);
+  const [selectedEvent, setSelectedEvent] = useState<EventData | null>(null);
 
   // Dummy Event Data (Replace with real data from backend)
-  const events = [
+  const events: EventData[] = [
     {
       id: "1",
       title: "Tech Fest 2024",
@@ -33,7 +42,7 @@ export default function RightSection() {
   ];
 
   const handleEventClick = (info: EventClickArg) => {
-    const event = events.find((e) => e.id === info.event.id);
+    const event = events.find((e) => e.id === info.event.id) || null;
     setSelectedEvent(event);
   };
 

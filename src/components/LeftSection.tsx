@@ -1,3 +1,4 @@
+//src/components/LeftSection.tsx
 "use client";
 
 import { useState } from "react";

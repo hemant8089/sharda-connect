@@ -5,6 +5,7 @@ import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import Modal from "@/components/Modal";
+import { EventClickArg } from "@fullcalendar/core";
 
 export default function RightSection() {
   const [selectedEvent, setSelectedEvent] = useState<any>(null);
@@ -31,7 +32,7 @@ export default function RightSection() {
     },
   ];
 
-  const handleEventClick = (info: any) => {
+  const handleEventClick = (info: EventClickArg) => {
     const event = events.find((e) => e.id === info.event.id);
     setSelectedEvent(event);
   };

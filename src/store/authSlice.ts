@@ -25,7 +25,10 @@ const initialState: AuthState = {
   error: null,
 };
 
-const apiUrl ="http://localhost:8000"
+// const apiUrl ="http://localhost:8000"
+const apiUrl ="https://s-connect-backend-2.onrender.com"
+
+
 // Async Thunks
 export const registerUser = createAsyncThunk(
   "auth/register",

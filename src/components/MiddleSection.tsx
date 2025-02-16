@@ -1,6 +1,7 @@
+// src/components/MiddleSection.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function MiddleSection() {
   // Dummy Posts (Replace with backend data later)
@@ -25,7 +26,24 @@ export default function MiddleSection() {
       comments: 10,
       shares: 8,
     },
+    {
+      id: "3",
+      title: "AI Hackathon",
+      content: "Registrations open!",
+      author: "Superadmin",
+      likes: 50,
+      comments: 20,
+      shares: 15,
+    },
   ]);
+
+  const [role, setRole] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setRole(localStorage.getItem("user-role"));
+    }
+  }, []);
 
   const handleLike = (postId: string) => {
     setPosts((prevPosts) =>
@@ -64,6 +82,9 @@ export default function MiddleSection() {
             <button className="text-red-600 hover:text-red-800 flex items-center">
               🔖 Save
             </button>
+            {role === "super_admin" && (
+              <button className="text-purple-600">✏️ Edit</button>
+            )}
           </div>
         </div>
       ))}

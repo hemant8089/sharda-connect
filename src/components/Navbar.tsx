@@ -1,13 +1,59 @@
-//src/components/Navbar.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import Cookies from "js-cookie"; // Import js-cookie
 
 export default function Navbar() {
   const router = useRouter();
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [token, setToken] = useState<string | null>(null);
+  const [role, setRole] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const storedToken = localStorage.getItem("auth-storage");
+      const cookieToken = Cookies.get("auth-token");
+      const userRole = localStorage.getItem("user-role") || ""; // Ensure it's not null
+
+      if (storedToken) {
+        // console.log("Token from LocalStorage:", storedToken);
+        setToken(storedToken);
+      } else if (cookieToken) {
+        // console.log("Token from Cookies:", cookieToken);
+        setToken(cookieToken);
+      } else {
+        // console.log("No token found.");
+        setToken(null);
+      }
+      setRole(userRole); // Avoid setting null role
+    }
+  }, []); // Run only once on component mount
+
+  const handleLogout = () => {
+    if (typeof window !== "undefined") {
+      // Remove all authentication-related data
+      localStorage.removeItem("auth-storage");
+      localStorage.removeItem("user-role");
+      Cookies.remove("auth-token");
+      Cookies.remove("isAuthenticated");
+      Cookies.remove("userData");
+
+      setToken(null);
+
+      // console.log(
+      //   "Tokens after logout:",
+      //   localStorage.getItem("auth-storage"),
+      //   Cookies.get("auth-token"),
+      //   Cookies.get("isAuthenticated"),
+      //   Cookies.get("userData")
+      // ); // Debugging
+
+      // Force redirect to login page
+      router.push("/login");
+    }
+  };
 
   // Dummy user data (Replace with real user data in future)
   const user = {
@@ -22,7 +68,15 @@ export default function Navbar() {
       {/* Left: Logo */}
       <h1
         className="text-xl font-bold text-blue-600 cursor-pointer"
-        onClick={() => router.push("/dashboard")}
+        onClick={() =>
+          router.push(
+            role === "super_admin"
+              ? "/superadmin-dashboard"
+              : role === "admin"
+              ? "/admin-dashboard"
+              : "/dashboard"
+          )
+        }
       >
         ShardaConnect
       </h1>
@@ -37,67 +91,118 @@ export default function Navbar() {
       </div>
 
       {/* Right: User Profile Dropdown */}
-      <div className="relative">
-        <button
-          onClick={() => setDropdownOpen(!dropdownOpen)}
-          className="flex items-center space-x-2"
-        >
-          <Image
-            src={user.profilePic}
-            alt="Profile"
-            width={40}
-            height={40}
-            className="rounded-full"
-          />
-          <span className="hidden md:inline text-gray-700">{user.name}</span>
-        </button>
+      {token ? (
+        <div className="relative">
+          <button
+            onClick={() => setDropdownOpen(!dropdownOpen)}
+            className="flex items-center space-x-2"
+          >
+            <Image
+              src={user.profilePic}
+              alt="Profile"
+              width={40}
+              height={40}
+              className="rounded-full border"
+            />
+            <span className="hidden md:inline text-gray-700">{user.name}</span>
+          </button>
 
-        {/* Dropdown */}
-        {dropdownOpen && (
-          <div className="absolute right-0 mt-2 w-60 bg-white shadow-lg rounded-lg overflow-hidden">
-            {/* User Info */}
-            <div className="p-4 text-center">
-              <Image
-                src={user.profilePic}
-                alt="User Photo"
-                width={60}
-                height={60}
-                className="rounded-full mx-auto"
-              />
-              <h3 className="mt-2 font-semibold">{user.name}</h3>
-              <p className="text-gray-500 text-sm">{user.email}</p>
-              <p className="text-gray-500 text-sm">{user.semester}</p>
+          {/* Dropdown */}
+          {dropdownOpen && (
+            <div className="absolute right-0 mt-2 w-60 bg-white shadow-lg rounded-lg overflow-hidden">
+              {/* User Info */}
+              <div className="p-4 text-center">
+                <Image
+                  src={user.profilePic}
+                  alt="User Photo"
+                  width={60}
+                  height={60}
+                  className="rounded-full mx-auto"
+                />
+                <h3 className="mt-2 font-semibold">{user.name}</h3>
+                <p className="text-gray-500 text-sm">{user.email}</p>
+                {role === "user" && (
+                  <p className="text-gray-500 text-sm">{user.semester}</p>
+                )}
+                {role && (
+                  <p className="text-blue-600 font-semibold">
+                    {role.toUpperCase()}
+                  </p>
+                )}
+              </div>
+              {/* Links */}
+              <ul className="border-t">
+                {/* Always Visible Links for Everyone */}
+                <li
+                  className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                  onClick={() => router.push("/profile")}
+                >
+                  View Profile
+                </li>
+                <li
+                  className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                  onClick={() => router.push("/saved-posts")}
+                >
+                  Saved Posts
+                </li>
+                <li
+                  className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                  onClick={() =>
+                    router.push(
+                      role === "super_admin"
+                        ? "/superadmin-dashboard"
+                        : role === "admin"
+                        ? "/admin-dashboard"
+                        : "/dashboard"
+                    )
+                  }
+                >
+                  Home
+                </li>
+
+                {/* Super Admin Exclusive Options */}
+                {role === "super_admin" && (
+                  <>
+                    <li
+                      className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                      onClick={() => router.push("/superadmin-dashboard/manageGroups")}
+                    >
+                      Manage Groups
+                    </li>
+                    <li
+                      className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                      onClick={() => router.push("/manage-posts")}
+                    >
+                      Manage Posts
+                    </li>
+                    <li
+                      className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                      onClick={() => router.push("/manage-events")}
+                    >
+                      Manage Events
+                    </li>
+                  </>
+                )}
+
+                {/* Logout (For Everyone) */}
+                <li
+                  className="px-4 py-2 text-red-500 hover:bg-gray-100 cursor-pointer"
+                  onClick={handleLogout}
+                >
+                  Logout
+                </li>
+              </ul>
             </div>
-            {/* Links */}
-            <ul className="border-t">
-              <li
-                className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                onClick={() => router.push("/profile")}
-              >
-                View Profile
-              </li>
-              <li
-                className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                onClick={() => router.push("/saved-posts")}
-              >
-                Saved Posts
-              </li>
-              <li
-                className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                onClick={() => router.push("/dashboard")}
-              >
-                Home
-              </li>
-              <li
-                className="px-4 py-2 text-red-500 hover:bg-gray-100 cursor-pointer"
-                onClick={() => console.log("Logout function")}
-              >
-                Logout
-              </li>
-            </ul>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+      ) : (
+        <button
+          onClick={() => router.push("/login")}
+          className="text-blue-600 font-semibold"
+        >
+          Login
+        </button>
+      )}
     </nav>
   );
 }

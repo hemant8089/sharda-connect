@@ -1,4 +1,4 @@
-
+//src/app/login/page.tsx
 "use client";
 
 import { useForm } from "react-hook-form";
@@ -7,6 +7,7 @@ import { loginUser } from "@/store/authSlice";
 import { RootState, AppDispatch } from "@/store/index";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import Cookies from "js-cookie";
 
 interface LoginFormInputs {
   email: string;
@@ -24,11 +25,31 @@ export default function StudentLogin() {
     formState: { errors },
   } = useForm<LoginFormInputs>();
 
+
   const onSubmit = async (data: LoginFormInputs) => {
-    const response = await dispatch(loginUser({ email: data.email, password: data.password }));
+    const response = await dispatch(
+      loginUser({ email: data.email, password: data.password })
+    );
 
     if (response.meta.requestStatus === "fulfilled") {
-      router.push("/dashboard"); // Redirect to dashboard or another page
+      const { user } = response.payload;
+
+      // 🚨 Correct way to check role
+      if (user.role !== "USER") {
+        alert("Unauthorized access. Only students can log in here.");
+        return;
+      }
+
+      // Store authentication data
+      localStorage.setItem("auth-storage", JSON.stringify(response.payload));
+      localStorage.setItem("user-role", "user");
+      Cookies.set("userData", "user");
+      Cookies.set("isAuthenticated", "true");
+
+      // Redirect to student dashboard
+      router.push("/dashboard");
+    } else {
+      alert("Login failed. Check credentials.");
     }
   };
 
@@ -41,24 +62,38 @@ export default function StudentLogin() {
         <form onSubmit={handleSubmit(onSubmit)}>
           {/* Email Input */}
           <input
-            {...register("email", { required: "Email is required", pattern: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/ })}
+            {...register("email", {
+              required: "Email is required",
+              pattern: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+            })}
             type="email"
             placeholder="Enter Email"
             className="w-full px-4 py-2 border rounded-md mb-2"
           />
-          {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
+          {errors.email && (
+            <p className="text-red-500 text-sm">{errors.email.message}</p>
+          )}
 
           {/* Password Input */}
           <input
-            {...register("password", { required: "Password is required", minLength: 6 })}
+            {...register("password", {
+              required: "Password is required",
+              minLength: 6,
+            })}
             type="password"
             placeholder="Enter Password"
             className="w-full px-4 py-2 border rounded-md mb-2"
           />
-          {errors.password && <p className="text-red-500 text-sm">Password must be at least 6 characters</p>}
+          {errors.password && (
+            <p className="text-red-500 text-sm">
+              Password must be at least 6 characters
+            </p>
+          )}
 
           {/* Login Button */}
-          <Button disabled={status === "loading"} >{status === "loading" ? "Logging in..." : "Login"}</Button>
+          <Button disabled={status === "loading"}>
+            {status === "loading" ? "Logging in..." : "Login"}
+          </Button>
 
           {/* Error Message */}
           {error && <p className="text-red-500 text-center mt-2">{error}</p>}
@@ -66,7 +101,10 @@ export default function StudentLogin() {
 
         <p className="text-center text-sm text-gray-600 mt-4">
           New to ShardaConnect?{" "}
-          <span className="text-blue-600 cursor-pointer hover:underline" onClick={() => router.push("/signup")}>
+          <span
+            className="text-blue-600 cursor-pointer hover:underline"
+            onClick={() => router.push("/signup")}
+          >
             Signup
           </span>
         </p>
@@ -74,13 +112,3 @@ export default function StudentLogin() {
     </div>
   );
 }
-
-
-
-
-
-
-
-
-
-

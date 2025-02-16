@@ -2,6 +2,7 @@
 import { syncLocalStorageToCookies } from "@/utils/syncStorage";
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
+import Cookies from "js-cookie";
 
 interface User {
   id: string;
@@ -26,37 +27,101 @@ const initialState: AuthState = {
 };
 
 // const apiUrl ="http://localhost:8000"
-const apiUrl ="https://s-connect-backend-2.onrender.com"
-
+const apiUrl = "https://s-connect-backend-2.onrender.com";
 
 // Async Thunks
+
+export const sendOtp = createAsyncThunk(
+  "auth/sendOtp",
+  async (
+    params: { email: string; password: string; role?: string },
+    { rejectWithValue }
+  ) => {
+    try {
+      const response = await fetch(`${apiUrl}/api/auth/register`, {
+        method: "POST",
+        body: JSON.stringify(params),
+        headers: { "Content-Type": "application/json" },
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || "Failed to send OTP");
+
+      return data.message || "OTP sent successfully"; // Always return a string or expected object
+    } catch (error: any) {
+      return rejectWithValue(error.message || "OTP request failed");
+    }
+  }
+);
+
+export const verifyOtp = createAsyncThunk(
+  "auth/verifyOtp",
+  async (
+    otpData: { email: string; otp: string; phone: string; password: string },
+    { rejectWithValue }
+  ) => {
+    try {
+      const response = await fetch(`${apiUrl}/api/auth/verifyOtp`, {
+        method: "POST",
+        body: JSON.stringify(otpData),
+        headers: { "Content-Type": "application/json" },
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message);
+      return data;
+    } catch (error: any) {
+      return rejectWithValue(error.message || "OTP verification failed");
+    }
+  }
+);
+
 export const registerUser = createAsyncThunk(
   "auth/register",
-  async (userData: { email: string; password: string; role?: string }, { rejectWithValue }) => {
+  async (
+    userData: { email: string; password: string; role?: string },
+    { rejectWithValue }
+  ) => {
     try {
-      const response = await axios.post(`${apiUrl}/api/auth/register`, userData);
-      console.log("after login",response);
-      
+      const response = await axios.post(
+        `${apiUrl}/api/auth/register`,
+        userData
+      );
+      console.log("after login", response);
+
       return response.data;
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || "Registration failed");
+      return rejectWithValue(
+        error.response?.data?.message || "Registration failed"
+      );
     }
   }
 );
 
 export const loginUser = createAsyncThunk(
   "auth/login",
-  async (credentials: { email: string; password: string }, { rejectWithValue }) => {
+  async (
+    credentials: { email: string; password: string },
+    { rejectWithValue }
+  ) => {
     try {
-      const response = await axios.post(`${apiUrl}/api/auth/login`, credentials);
-      console.log("after login",response);
-      if(response.data.success){
+      const response = await axios.post(
+        `${apiUrl}/api/auth/login`,
+        credentials
+      );
+      console.log("after login", response);
+      if (response.data.success) {
+        const { user, token } = response.data;
+
+        // Store authentication data
         localStorage.setItem("auth-storage", JSON.stringify(response.data));
-        syncLocalStorageToCookies("userData");
-        
+        localStorage.setItem("user-role", user.role);
+        Cookies.set("userData", user.role);
+        Cookies.set("isAuthenticated", "true");
+
+        return response.data;
       }
-      return response.data;
-      
+
+      throw new Error("Invalid credentials.");
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || "Login failed");
     }
@@ -73,11 +138,12 @@ export const fetchProfile = createAsyncThunk(
       });
       return response.data;
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || "Fetching profile failed");
+      return rejectWithValue(
+        error.response?.data?.message || "Fetching profile failed"
+      );
     }
   }
 );
-
 
 const authSlice = createSlice({
   name: "auth",
@@ -134,16 +200,3 @@ const authSlice = createSlice({
 
 export const { logout } = authSlice.actions;
 export default authSlice.reducer;
-
-
-
-
-
-
-
-
-
-
-
-
-

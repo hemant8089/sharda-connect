@@ -1,7 +1,7 @@
 //src/components/RightSection.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
@@ -18,6 +18,13 @@ interface EventData {
 
 export default function RightSection() {
   const [selectedEvent, setSelectedEvent] = useState<EventData | null>(null);
+  const [role, setRole] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setRole(localStorage.getItem("user-role"));
+    }
+  }, []);
 
   // Dummy Event Data (Replace with real data from backend)
   const events: EventData[] = [
@@ -61,6 +68,12 @@ export default function RightSection() {
         height="auto"
         headerToolbar={{ left: "", center: "title", right: "prev,next" }}
       />
+
+      {role === "super_admin" && (
+        <button className="bg-blue-600 text-white px-4 py-2 rounded-md mt-4 w-full">
+          Manage Events
+        </button>
+      )}
 
       {/* Event Modal */}
       {selectedEvent && (

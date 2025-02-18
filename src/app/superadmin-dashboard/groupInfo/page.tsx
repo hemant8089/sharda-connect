@@ -13,6 +13,7 @@ import {
   FaEdit,
   FaTrash,
 } from "react-icons/fa";
+import axios from "axios";
 
 export default function GroupInfo() {
   const searchParams = useSearchParams();
@@ -30,6 +31,33 @@ export default function GroupInfo() {
 
   const [group, setGroup] = useState<Group | null>(null);
   const [activeTab, setActiveTab] = useState("posts");
+
+
+  
+
+  const [userId,setUserId]=useState();
+const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3YThiZmVhNGNlNjdkYzM4MGY1YzY1ZSIsInJvbGUiOiJTVVBFUl9BRE1JTiIsImlhdCI6MTczOTg5MDMwNCwiZXhwIjoxNzM5ODkzOTA0fQ.3PyxKqBbmQ7zSfu22xpXJdGGiUzX85OyAulhaCjlFW4"
+  const addMember = async() => {
+    const params ={
+      userId,
+      groupId:"67a649e8895b044306f3939e"
+    }
+    //   const response = axios.post("https://s-connect-backend-2.onrender.com/api/group/addMember",params)
+    //   console.log("response add member",response);
+
+    const response = await axios.post(
+      "https://s-connect-backend-2.onrender.com/api/group/addMember",
+      params,
+      {
+          headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json"
+          }
+      }
+  );
+  console.log("Response add member:", response.data);
+  }
+
 
   useEffect(() => {
     const dummyGroup = {
@@ -161,6 +189,11 @@ export default function GroupInfo() {
                   <input type="text" placeholder="Search members..." className="border p-2 rounded flex-1" />
                   <button className="bg-green-500 text-white px-4 py-2 rounded-lg">Add Member</button>
                 </div>
+                <div>
+                    <input className="border border-black rounded p-3" type="text" onChange={(e:any)=>setUserId(e.target.value)} />
+                  </div>
+                  <button className="bg-green-500 rounded p-3" onClick={addMember}>confirm</button>
+              
                 <table className="w-full border-collapse border border-gray-300">
                 <thead>
                   <tr className="bg-gray-200">

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Cookies from "js-cookie"; // Import js-cookie
+import axios from "axios";
 
 export default function Navbar() {
   const router = useRouter();
@@ -62,6 +63,10 @@ export default function Navbar() {
     semester: "Semester 5",
     profilePic: "/user-placeholder.png", // Placeholder image
   };
+
+  
+
+
 
   return (
     <nav className="fixed top-0 left-0 w-full bg-white shadow-md py-3 px-6 flex justify-between items-center z-50">
@@ -161,7 +166,7 @@ export default function Navbar() {
                 </li>
 
                 {/* Super Admin Exclusive Options */}
-                {role === "super_admin" && (
+                
                   <>
                     <li
                       className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
@@ -182,7 +187,8 @@ export default function Navbar() {
                       Manage Events
                     </li>
                   </>
-                )}
+
+                 
 
                 {/* Logout (For Everyone) */}
                 <li

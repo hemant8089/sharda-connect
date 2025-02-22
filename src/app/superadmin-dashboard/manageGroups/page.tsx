@@ -90,8 +90,9 @@ export default function ManageGroups() {
       );
       setFilteredGroups(filtered);
       setIsSearching(false);
+      console.log("Searching for:", isSearching);
     }, 300),
-    []
+    [groups]
   );
 
   useEffect(() => {

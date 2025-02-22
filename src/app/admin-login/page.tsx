@@ -64,19 +64,23 @@ export default function AdminLogin() {
     );
 
     if (response.meta.requestStatus === "fulfilled") {
-      const { user } = response.payload;
+      const { user, token } = response.payload;
 
       // 🚨 Correct way to check role from backend response
       if (user.role === "SUPER_ADMIN") {
         localStorage.setItem("auth-storage", JSON.stringify(response.payload));
+        localStorage.setItem("token", JSON.stringify(response.payload.token)); 
         localStorage.setItem("user-role", "super_admin");
         Cookies.set("userData", "super_admin");
+        Cookies.set("token", token);
         Cookies.set("isAuthenticated", "true");
         router.push("/superadmin-dashboard");
       } else if (user.role === "admin") {
         localStorage.setItem("auth-storage", JSON.stringify(response.payload));
+        localStorage.setItem("token", JSON.stringify(response.payload.token));
         localStorage.setItem("user-role", "admin");
         Cookies.set("userData", "admin");
+        Cookies.set("token", token);
         Cookies.set("isAuthenticated", "true");
         router.push("/admin-dashboard");
       } else {

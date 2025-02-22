@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Cookies from "js-cookie"; // Import js-cookie
-import axios from "axios";
+// import axios from "axios";
 
 export default function Navbar() {
   const router = useRouter();
@@ -63,10 +63,6 @@ export default function Navbar() {
     semester: "Semester 5",
     profilePic: "/user-placeholder.png", // Placeholder image
   };
-
-  
-
-
 
   return (
     <nav className="fixed top-0 left-0 w-full bg-white shadow-md py-3 px-6 flex justify-between items-center z-50">
@@ -140,7 +136,7 @@ export default function Navbar() {
                 {/* Always Visible Links for Everyone */}
                 <li
                   className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                  onClick={() => router.push("/profile")}
+                  onClick={() => router.push("/dashboard/profile")}
                 >
                   View Profile
                 </li>
@@ -166,29 +162,34 @@ export default function Navbar() {
                 </li>
 
                 {/* Super Admin Exclusive Options */}
-                
+                {role === "super_admin" && (
                   <>
                     <li
                       className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                      onClick={() => router.push("/superadmin-dashboard/manageGroups")}
+                      onClick={() =>
+                        router.push("/superadmin-dashboard/manageGroups")
+                      }
                     >
                       Manage Groups
                     </li>
                     <li
                       className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                      onClick={() => router.push("/manage-posts")}
+                      onClick={() =>
+                        router.push("/superadmin-dashboard/managePosts")
+                      }
                     >
                       Manage Posts
                     </li>
                     <li
                       className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                      onClick={() => router.push("/manage-events")}
+                      onClick={() =>
+                        router.push("/superadmin-dashboard/manageEvents")
+                      }
                     >
                       Manage Events
                     </li>
                   </>
-
-                 
+                )}
 
                 {/* Logout (For Everyone) */}
                 <li

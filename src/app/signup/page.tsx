@@ -19,7 +19,7 @@ interface SignupFormInputs {
 export default function SignupPage() {
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
-  const { status, error } = useSelector((state: RootState) => state.auth);
+  // const { status, error } = useSelector((state: RootState) => state.auth);
 
   const [cur, setScur] = useState(() => {
     return typeof window !== "undefined" &&
@@ -68,6 +68,8 @@ export default function SignupPage() {
 
       setScur("otp"); // Now TypeScript is happy
       setMessage(response); // Display success message
+      console.log(response);
+      console.log(message);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Failed to send OTP");
     }

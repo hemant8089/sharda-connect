@@ -350,12 +350,12 @@ import SuperAdminNavbar from "@/components/Navbar";
 import {
   FaUsers,
   FaUserCog,
-  FaPlus,
   FaEdit,
   FaTrash,
   FaTags,
 } from "react-icons/fa";
 import axios from "axios";
+import { SearchParams } from "next/dist/server/request/search-params";
 
 export default function GroupInfo() {
   const searchParams = useSearchParams();

@@ -3,11 +3,12 @@
 
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { sendOtp, verifyOtp } from "@/store/authSlice";
-import { RootState, AppDispatch } from "@/store/index";
+// import { RootState, AppDispatch } from "@/store/index";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { AppDispatch } from "@/store";
 
 interface SignupFormInputs {
   email: string;
@@ -89,6 +90,7 @@ export default function SignupPage() {
       ).unwrap();
 
       localStorage.removeItem("signupStep");
+      console.log(response);
       router.push("/login");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Invalid OTP");

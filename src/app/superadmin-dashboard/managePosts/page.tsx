@@ -5,8 +5,7 @@ import { useState } from "react";
 import Image from "next/image";
 import { Search, Edit2, Trash2, Upload, MessageSquare } from "lucide-react";
 import SuperAdminNavbar from "@/components/Navbar";
-import SunEditor from "suneditor-react";
-import "suneditor/dist/css/suneditor.min.css";
+import Editor from "@/components/Editor"; 
 import axios from "axios";
 
 interface Post {
@@ -66,13 +65,16 @@ export default function ManagePosts() {
     title: "",
     content: "",
     target: { type: "everyone", value: "everyone" },
+    mediaUrl: "",
   });
 
   console.log("Posts", posts);
-const senttoserver =()=>{
-  const response = axios.post("http://localhost:5000/api/posts", newPost);
-  console.log("Response", response);
-}
+
+  const sendToServer = () => {
+    axios.post("https://s-connect-backend-2.onrender.com/api/posts", newPost)
+      .then(response => console.log("Response", response))
+      .catch(err => console.error(err));
+  };
 
   const handleCreatePost = (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,11 +83,12 @@ const senttoserver =()=>{
       return;
     }
    console.log("New Post", newPost);
-   senttoserver();
+   sendToServer();
     setNewPost({
       title: "",
       content: "",
       target: { type: "everyone", value: "everyone" },
+      mediaUrl: "",
     });
   };
 
@@ -158,17 +161,11 @@ const senttoserver =()=>{
             </div>
 
             {/* Content */}
-            <SunEditor                 //use lexical in future
-              setOptions={{
-                buttonList: [
-                  ["formatBlock", "fontSize", "bold", "italic", "underline"],
-                  ["align", "list", "image", "video"],
-                ],
-              }}
-              placeholder="Write your post content here..."
-              setContents={newPost.content || ""}
-              onChange={(content) => setNewPost({ ...newPost, content })}
-              setDefaultStyle="width: 100%; height:10rem; border: 1px solid #d1d5db; padding: 8px; border-radius: 6px; box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.1);"
+            <Editor
+              content={newPost.content || ""}
+              onChange={(value) =>
+                setNewPost({ ...newPost, content: value })
+              }
             />
             
 

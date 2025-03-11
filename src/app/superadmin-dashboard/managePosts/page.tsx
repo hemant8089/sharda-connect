@@ -71,7 +71,7 @@ export default function ManagePosts() {
   console.log("Posts", posts);
 
   const sendToServer = () => {
-    axios.post("https://s-connect-backend-2.onrender.com/api/posts", newPost)
+    axios.post("https://s-connect-backend-2.onrender.com/api/group/post", newPost)
       .then(response => console.log("Response", response))
       .catch(err => console.error(err));
   };

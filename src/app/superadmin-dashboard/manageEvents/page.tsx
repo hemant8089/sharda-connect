@@ -11,6 +11,7 @@ import {
   CalendarDays,
 } from "lucide-react";
 import SuperAdminNavbar from "@/components/Navbar";
+import UploadModal from "@/components/Editor/UploadModal";
 import Image from "next/image";
 
 interface Event {
@@ -67,6 +68,7 @@ const initialEvents: Event[] = [
 export default function ManageEvents() {
   const [events, setEvents] = useState<Event[]>(initialEvents);
   const [searchTerm, setSearchTerm] = useState("");
+  const [showUploadModal, setShowUploadModal] = useState(false);
   const [newEvent, setNewEvent] = useState<Partial<Event>>({
     title: "",
     description: "",
@@ -74,6 +76,23 @@ export default function ManageEvents() {
     target: { type: "everyone", value: "everyone" },
   });
 
+  const handleFileUpload = async (file: File) => {
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      
+      const response = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+      
+      const data = await response.json();
+      setNewEvent(prev => ({ ...prev, mediaUrl: data.url }));
+    } catch (error) {
+      console.error("Upload failed:", error);
+    }
+  };
+  
   const handleCreateEvent = (e: React.FormEvent) => {
     e.preventDefault();
     const event: Event = {
@@ -103,6 +122,14 @@ export default function ManageEvents() {
   return (
     <div className="min-h-screen bg-white text-blue-900">
       <SuperAdminNavbar />
+
+      {showUploadModal && (
+        <UploadModal
+          onClose={() => setShowUploadModal(false)}
+          onUploadUrl={(url) => setNewEvent(prev => ({ ...prev, mediaUrl: url }))}
+          onSelectFile={handleFileUpload}
+        />
+      )}
 
       {/* Page Content */}
       <div className="max-w-7xl mx-auto p-6 pt-20">
@@ -206,6 +233,7 @@ export default function ManageEvents() {
                   />
                   <button
                     type="button"
+                    onClick={() => setShowUploadModal(true)}
                     className="ml-2 inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                   >
                     <Upload className="h-4 w-4" />

@@ -138,6 +138,28 @@ const [uploadModalOpen, setUploadModalOpen] = useState(false);
     },
   ];
 
+  const handleFileUpload = async (file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+  
+    try {
+      const response = await fetch("https://s-connect-backend-2.onrender.com/upload-image", {
+        method: "POST",
+        body: formData,
+      });
+  
+      const data = await response.json();
+      if (data.coverImage) {
+        editor.chain().focus().setImage({ src: data.coverImage }).run();
+      } else {
+        console.error("Upload failed:", data.message);
+      }
+    } catch (error) {
+      console.error("Error uploading image:", error);
+    }
+  };
+
+
 //   return (
 //     <div className="border rounded-md p-1.5 mb-1 bg-slate-50 space-x-1 sticky top-10 z-50 flex flex-wrap items-center">
 //       {headingOptions.map((option, i) => (
@@ -202,10 +224,11 @@ return (
           onUploadUrl={(url: string) => {
             editor.chain().focus().setImage({ src: url }).run();
           }}
-          onSelectFile={(file: File) => {
-            const objectUrl = URL.createObjectURL(file);
-            editor.chain().focus().setImage({ src: objectUrl }).run();
-          }}
+          // onSelectFile={(file: File) => {
+          //   const objectUrl = URL.createObjectURL(file);
+          //   editor.chain().focus().setImage({ src: objectUrl }).run();
+          // }}
+          onSelectFile={handleFileUpload}
         />
       )}
     </div>

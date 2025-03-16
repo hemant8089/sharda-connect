@@ -16,7 +16,8 @@ import {
   FaEyeSlash,
 } from "react-icons/fa";
 import axios from "axios";
-
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 interface Group {
   id: string;
   name: string;
@@ -45,13 +46,17 @@ interface Group {
     id: string;
     title: string;
     description: string;
-    author: string;
+    author: any;
     createdAt: string;
     likes: number;
   }[];
   category: string;
   isPublic: boolean;
 }
+import { useParams } from 'next/navigation';
+import PostDialog from "@/components/postDialog";
+import { Button } from "@headlessui/react";
+
 
 export default function GroupInfo() {
   const searchParams = useSearchParams();
@@ -70,6 +75,8 @@ export default function GroupInfo() {
     members: "",
     description: "",
   });
+  const [openPostDialog, setOpenPostDialog] = useState<boolean>(false);
+  const [seletedPostId,setSeletedPostId] = useState("");
 
   const [groupSettings, setGroupSettings] = useState({
     name: "",
@@ -77,7 +84,7 @@ export default function GroupInfo() {
     category: "CLUB",
     isPublic: true,
   });
-
+const router = useRouter();
   const useToken = () => {
     const storedToken = localStorage.getItem("auth-storage");
     return JSON.parse(storedToken || "{}").token;
@@ -379,10 +386,25 @@ export default function GroupInfo() {
       });
     }
   };
-
+  const [posts, setPosts] = useState<any[]>([]);
+ const { id } = useParams()
+  const getPosts = async() => {
+    try{
+   const posts= await axios.post(`https://s-connect-backend-2.onrender.com/api/group/getPosts`, id)
+   console.log("Postsjjj", posts.data);
+   setPosts(posts.data);
+    }
+    catch(err){
+      console.error(err);
+    }
+  };
+console.log("posts",posts)
   useEffect(() => {
+    getPosts()
     fetchGroupData();
   }, [groupId]);
+
+
 
   if (loading) {
     return (
@@ -437,6 +459,7 @@ export default function GroupInfo() {
         .toLowerCase()
         .includes(searchTerms.members.toLowerCase())
   );
+  
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -518,6 +541,8 @@ export default function GroupInfo() {
 
           {activeTab === "posts" && (
             <div className="space-y-4">
+              <PostDialog postId={seletedPostId} openPostDialog={openPostDialog} setOpenPostDialog={setOpenPostDialog}/>
+              {/* <Button className="bg-red-400" onClick={()=>setOpenPostDialog(true)}>open</Button> */}
               <div className="flex gap-4">
                 <input
                   type="text"
@@ -528,8 +553,15 @@ export default function GroupInfo() {
                     setSearchTerms({ ...searchTerms, posts: e.target.value })
                   }
                 />
-                <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                <button 
+                
+                //  onClick={()=>router.push(`/superadmin-dashboard/manage-post/${groupId}`)} 
+                 className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                  <Link
+                  href={`/superadmin-dashboard/manage-post/${groupId}`}>
                   Add Post
+                  </Link>
+                  
                 </button>
               </div>
               <div className="overflow-x-auto rounded-lg border">
@@ -556,9 +588,12 @@ export default function GroupInfo() {
                   <tbody>
                     {filteredPosts.map((post) => (
                       <tr key={post.id} className="border-t hover:bg-gray-50">
-                        <td className="p-3">{post.id}</td>
+                        <td  onClick={()=>{
+                          setSeletedPostId(post.id)
+                          setOpenPostDialog(true);
+                        }} className="p-3 cursor-pointer">{post.id}</td>
                         <td className="p-3">{post.title}</td>
-                        <td className="p-3">{post.author}</td>
+                        <td className="p-3">{post.author.name || post.author.email }</td>
                         <td className="p-3">{post.createdAt}</td>
                         <td className="p-3">{post.likes}</td>
                         <td className="p-3">

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Cookies from "js-cookie"; // Import js-cookie
+import { FaSearch } from "react-icons/fa"; // Import FaSearch icon
 // import axios from "axios";
 
 export default function Navbar() {
@@ -84,11 +85,30 @@ export default function Navbar() {
 
       {/* Center: Search Bar */}
       <div className="relative w-1/2">
-        <input
-          type="text"
-          placeholder="Search..."
-          className="w-full px-4 py-2 border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            const formData = new FormData(e.currentTarget);
+            const searchQuery = formData.get("search") as string;
+            router.push(`/search?q=${encodeURIComponent(searchQuery)}`);
+            e.currentTarget.reset(); // Clear the input after search
+          }}
+          className="w-full"
+        >
+          <input
+            name="search"
+            type="text"
+            placeholder="Search groups, events, or posts..."
+            className="w-full px-4 py-2 border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <button
+            type="submit"
+            className="absolute right-3 top-1/2 -translate-y-1/2"
+            aria-label="Search"
+          >
+            <FaSearch className="text-gray-400 hover:text-blue-500 transition-colors" />
+          </button>
+        </form>
       </div>
 
       {/* Right: User Profile Dropdown */}

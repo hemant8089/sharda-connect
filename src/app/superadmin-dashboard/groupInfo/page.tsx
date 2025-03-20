@@ -90,6 +90,33 @@ const router = useRouter();
     return JSON.parse(storedToken || "{}").token;
   };
 
+  const deleteGroup = async () => {
+    const confirmDelete = window.confirm(
+      "Are you sure you want to permanently delete this group?"
+    );
+    if (!confirmDelete || !group) return;
+  
+    try {
+      const token = useToken();
+      const response = await axios.delete(
+        `https://s-connect-backend-2.onrender.com/api/group/${group.id}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+  
+      if (response.data.success) {
+        router.push("/superadmin-dashboard/manageGroups");
+      }
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message;
+      setStatus({
+        type: "error",
+        message: errorMessage || "Failed to delete group",
+      });
+    }
+  };
+
   const handleApiRequest = async (
     url: string,
     method: "post" | "delete",
@@ -933,7 +960,7 @@ console.log("posts",posts)
                     members, and settings, will be permanently removed.
                   </p>
                   <button
-                    onClick={ () => {}} // Add delete group function here
+                    onClick={deleteGroup}
                     className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 flex items-center gap-2"
                   >
                     <FaTrash />

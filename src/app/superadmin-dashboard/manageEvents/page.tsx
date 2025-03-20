@@ -2,14 +2,8 @@
 
 "use client";
 
-import { useState } from "react";
-import {
-  Search,
-  Edit2,
-  Trash2,
-  Upload,
-  CalendarDays,
-} from "lucide-react";
+import { useState, useEffect } from "react";
+import { Search, Edit2, Trash2, Upload, CalendarDays } from "lucide-react";
 import SuperAdminNavbar from "@/components/Navbar";
 import UploadModal from "@/components/Editor/UploadModal";
 import Image from "next/image";
@@ -37,38 +31,15 @@ const targetOptions = [
   { type: "semester", value: "Fall2024", label: "Fall 2024" },
 ];
 
-const initialEvents: Event[] = [
-  {
-    id: "1",
-    title: "End of Semester Party",
-    description: "Join us for the end of semester celebration!",
-    dateTime: "2024-03-25T18:00",
-    mediaUrl: "https://images.unsplash.com/photo-1555685812-4b943f1cb0eb",
-    target: { type: "everyone", value: "everyone" },
-    createdAt: "2024-03-20T10:00:00Z",
-  },
-  {
-    id: "2",
-    title: "Web Development Workshop",
-    description: "Learn the basics of web development with React.",
-    dateTime: "2024-03-28T14:00",
-    target: { type: "course", value: "CS101" },
-    createdAt: "2024-03-19T15:30:00Z",
-  },
-  {
-    id: "3",
-    title: "Study Group Session",
-    description: "Mathematics study group for upcoming finals.",
-    dateTime: "2024-03-26T16:00",
-    target: { type: "group", value: "Math Group" },
-    createdAt: "2024-03-18T09:15:00Z",
-  },
-];
+const initialEvents: Event[] = [];
 
 export default function ManageEvents() {
-  const [events, setEvents] = useState<Event[]>(initialEvents);
+  const [events, setEvents] = useState<Event[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [showUploadModal, setShowUploadModal] = useState(false);
+  const [editEvent, setEditEvent] = useState<Event | null>(null);
+  // const [formLoading, setFormLoading] = useState(false);                 //have to implement loading on create and edit buttons in future
   const [newEvent, setNewEvent] = useState<Partial<Event>>({
     title: "",
     description: "",
@@ -76,31 +47,141 @@ export default function ManageEvents() {
     target: { type: "everyone", value: "everyone" },
   });
 
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        const response = await fetch(
+          "https://s-connect-backend-2.onrender.com/api/event/events",
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage
+                .getItem("token")
+                ?.replace(/"/g, "")}`,
+            },
+          }
+        );
+
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        const data = await response.json();
+        setEvents(data);
+      } catch (error) {
+        console.error("Error fetching events:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchEvents();
+  }, []);
+
   const handleFileUpload = async (file: File) => {
     try {
       const formData = new FormData();
       formData.append("file", file);
-      
+
       const response = await fetch("/api/upload", {
         method: "POST",
         body: formData,
       });
-      
+
       const data = await response.json();
-      setNewEvent(prev => ({ ...prev, mediaUrl: data.url }));
+      setNewEvent((prev) => ({ ...prev, mediaUrl: data.url }));
     } catch (error) {
       console.error("Upload failed:", error);
     }
   };
-  
-  const handleCreateEvent = (e: React.FormEvent) => {
+
+  const handleCreateEvent = async (e: React.FormEvent) => {
     e.preventDefault();
-    const event: Event = {
-      id: Date.now().toString(),
-      ...(newEvent as Omit<Event, "id">),
-      createdAt: new Date().toISOString(),
-    };
-    setEvents([event, ...events]);
+    try {
+      const requestBody = {
+        title: newEvent.title,
+        description: newEvent.description,
+        dateTime: new Date(newEvent.dateTime!).toISOString(),
+        mediaUrl: newEvent.mediaUrl,
+        targetType: newEvent.target?.type.toUpperCase(),
+        targetValue: newEvent.target?.value,
+      };
+
+      let response;
+      if (editEvent) {
+        // Update existing event
+        response = await fetch(
+          `https://s-connect-backend-2.onrender.com/api/event/events/${editEvent.id}`,
+          {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${localStorage
+                .getItem("token")
+                ?.replace(/"/g, "")}`,
+            },
+            body: JSON.stringify(requestBody),
+          }
+        );
+      } else {
+        // Create new event
+        response = await fetch(
+          "https://s-connect-backend-2.onrender.com/api/event/events",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${localStorage
+                .getItem("token")
+                ?.replace(/"/g, "")}`,
+            },
+            body: JSON.stringify(requestBody),
+          }
+        );
+      }
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to save event");
+      }
+
+      const savedEvent = await response.json();
+
+      if (editEvent) {
+        setEvents(
+          events.map((event) =>
+            event.id === editEvent.id ? savedEvent : event
+          )
+        );
+        setEditEvent(null);
+      } else {
+        setEvents([savedEvent, ...events]);
+      }
+
+      setNewEvent({
+        title: "",
+        description: "",
+        dateTime: "",
+        target: { type: "everyone", value: "everyone" },
+      });
+    } catch (error) {
+      console.error("Save Event Error:", error);
+      if (error instanceof Error) {
+        alert(error.message || "Failed to save event");
+      } else {
+        alert("Failed to save event");
+      }
+    }
+  };
+
+  const handleEditClick = (event: Event) => {
+    setEditEvent(event);
+    setNewEvent({
+      title: event.title,
+      description: event.description,
+      dateTime: event.dateTime.slice(0, 16), // Truncate to datetime-local format
+      mediaUrl: event.mediaUrl,
+      target: event.target,
+    });
+  };
+
+  const handleCancelEdit = () => {
+    setEditEvent(null);
     setNewEvent({
       title: "",
       description: "",
@@ -109,8 +190,34 @@ export default function ManageEvents() {
     });
   };
 
-  const handleDelete = (id: string) => {
-    setEvents(events.filter((event) => event.id !== id));
+  const handleDelete = async (id: string) => {
+    try {
+      const response = await fetch(
+        `https://s-connect-backend-2.onrender.com/api/event/events/${id}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${localStorage
+              .getItem("token")
+              ?.replace(/"/g, "")}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Delete failed");
+      }
+
+      setEvents(events.filter((event) => event.id !== id));
+    } catch (error) {
+      console.error("Delete error:", error);
+      if (error instanceof Error) {
+        alert(error.message || "Failed to delete event");
+      } else {
+        alert("Failed to delete event");
+      }
+    }
   };
 
   const filteredEvents = events.filter(
@@ -126,7 +233,9 @@ export default function ManageEvents() {
       {showUploadModal && (
         <UploadModal
           onClose={() => setShowUploadModal(false)}
-          onUploadUrl={(url) => setNewEvent(prev => ({ ...prev, mediaUrl: url }))}
+          onUploadUrl={(url) =>
+            setNewEvent((prev) => ({ ...prev, mediaUrl: url }))
+          }
           onSelectFile={handleFileUpload}
         />
       )}
@@ -144,7 +253,7 @@ export default function ManageEvents() {
         {/* Create Event Section */}
         <div className="bg-white rounded-xl shadow-lg p-6 border border-blue-100 mt-6">
           <h2 className="text-xl font-semibold text-gray-800 mb-4">
-            Create New Event
+            {editEvent ? "Edit Event" : "Create New Event"}
           </h2>
           <form onSubmit={handleCreateEvent} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -260,12 +369,21 @@ export default function ManageEvents() {
             </div>
 
             {/* Submit Button */}
-            <div className="flex justify-end">
+            <div className="flex justify-end gap-4">
+              {editEvent && (
+                <button
+                  type="button"
+                  onClick={handleCancelEdit}
+                  className="inline-flex items-center px-6 py-3 border border-gray-300 text-base font-medium rounded-lg shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                >
+                  Cancel Edit
+                </button>
+              )}
               <button
                 type="submit"
                 className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-lg shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
               >
-                Create Event
+                {editEvent ? "Update Event" : "Create Event"}
               </button>
             </div>
           </form>
@@ -301,9 +419,8 @@ export default function ManageEvents() {
               </tr>
             </thead>
             <tbody>
-              {filteredEvents.map((event) => (
+              {filteredEvents.map((event: Event) => (
                 <tr key={event.id} className="border-t">
-                  {/* <td className="p-2">{event.title}</td> */}
                   <td className="p-2">
                     <div className="flex items-center space-x-3">
                       {event.mediaUrl ? (
@@ -330,13 +447,16 @@ export default function ManageEvents() {
                     <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
                       {
                         targetOptions.find(
-                          (opt) => opt.value === event.target.value
+                          (opt) => opt.value === event.target?.value
                         )?.label
                       }
                     </span>
                   </td>
                   <td className="p-2 flex space-x-4">
-                    <button className="text-indigo-600 hover:text-indigo-900">
+                    <button
+                      onClick={() => handleEditClick(event)}
+                      className="text-indigo-600 hover:text-indigo-900"
+                    >
                       <Edit2 className="h-4 w-4" />
                     </button>
                     <button

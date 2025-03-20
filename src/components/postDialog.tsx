@@ -35,7 +35,7 @@ export default function PostDialog({openPostDialog,setOpenPostDialog,postId}:any
   const fetchPost = async () => {
     try {
       setLoading(true);
-      const response = await axios.post("http://localhost:8000/api/group/getPostById", { postId });
+      const response = await axios.post("https://s-connect-backend-2.onrender.com/api/group/getPostById", { postId });
       setPost(response.data.data);
     } catch (error) {
       console.error("Error fetching post:", error);

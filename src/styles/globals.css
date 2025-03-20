@@ -14,6 +14,7 @@
     h3 {
       @apply text-lg font-bold;
     }
+    
   :root {
 
 
@@ -180,3 +181,121 @@
     }
 }
   
+
+.highlight-event {
+  background-color: #e0f7fa !important; /* Highlight color for upcoming events */
+}
+
+.past-event {
+  opacity: 0.6 !important; /* Dim past events */
+}
+
+
+
+
+/* Calendar Container */
+.fc-custom-theme {
+  --fc-border-color: #e5e7eb;
+  --fc-page-bg-color: #fff;
+  --fc-today-bg-color: #f3f4f6;
+}
+
+/* Header */
+.fc .fc-toolbar-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1e40af;
+}
+
+/* Day Headers */
+.fc .fc-col-header-cell {
+  padding: 0.5rem;
+  background-color: #f8fafc;
+  color: #374151;
+  font-weight: 500;
+}
+
+/* Day Cells */
+.fc .fc-daygrid-day {
+  padding: 4px;
+  min-height: 80px;
+}
+
+/* Events */
+.fc-custom-event {
+  /* padding: 4px 6px; */
+  /* margin: 2px; */
+  border-radius: 4px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.75rem;
+    padding: 2px 4px;
+    border: none !important;
+  box-shadow: none !important;
+  margin: 2px 0 !important;
+}
+
+/* Mobile Optimization */
+@media (max-width: 768px) {
+  .fc .fc-toolbar {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .fc .fc-toolbar-title {
+    font-size: 1rem;
+  }
+  
+  .fc .fc-button {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+  }
+  
+  .fc .fc-daygrid-day {
+    min-height: 60px;
+  }
+  
+}
+
+/* Hover Effects */
+.fc-custom-event:hover {
+  filter: brightness(95%);
+  transform: translateY(-1px);
+}
+
+
+/* Ensure each day cell provides enough padding and hides overflowing events */
+.fc .fc-daygrid-day-frame {
+  padding: 4px;         /* Increase padding for a better gap */
+  min-height: 100px;
+  overflow: hidden;     /* Hide any content that tries to bleed outside */
+  position: relative;   /* Establish a new positioning context */
+}
+
+/* Style individual events within a day cell */
+.fc .fc-daygrid-event {
+  margin: 2px 0;        /* Vertical margin between events */
+  padding: 4px 6px;     /* Consistent internal spacing */
+  border-radius: 4px;   /* Maintain your rounded corners */
+  white-space: nowrap;  /* Prevent text from wrapping */
+  overflow: hidden;     /* Cut off overflowing text */
+  text-overflow: ellipsis; /* Indicate overflow with ellipsis */
+}
+
+/* Make sure the container that holds events doesn't allow overflow */
+.fc .fc-daygrid-event-harness {
+  overflow: hidden;
+}
+
+
+
+
+@layer utilities {
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+}

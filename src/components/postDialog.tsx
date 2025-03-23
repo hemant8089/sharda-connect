@@ -46,9 +46,9 @@ export default function PostDialog({openPostDialog,setOpenPostDialog,postId}:any
 
   return (
     <>
-      <Button onClick={() => setOpenPostDialog(true)} className="bg-blue-600 hover:bg-blue-700 text-white">
+      {/* <Button onClick={() => setOpenPostDialog(true)} className="bg-blue-600 hover:bg-blue-700 text-white">
         View Post
-      </Button>
+      </Button> */}
 
       <Dialog open={openPostDialog} onOpenChange={setOpenPostDialog}>
         <DialogContent className="max-w-3xl rounded-2xl bg-white shadow-lg">

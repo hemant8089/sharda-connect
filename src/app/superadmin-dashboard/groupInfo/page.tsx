@@ -18,6 +18,9 @@ import {
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import PostModal from "@/components/PostModal";
+import CreatePostModal from "@/components/CreatePostModal";
+
 interface Group {
   id: string;
   name: string;
@@ -53,10 +56,10 @@ interface Group {
   category: string;
   isPublic: boolean;
 }
-import { useParams } from 'next/navigation';
+
+import { useParams } from "next/navigation";
 import PostDialog from "@/components/postDialog";
 import { Button } from "@headlessui/react";
-
 
 export default function GroupInfo() {
   const searchParams = useSearchParams();
@@ -76,7 +79,8 @@ export default function GroupInfo() {
     description: "",
   });
   const [openPostDialog, setOpenPostDialog] = useState<boolean>(false);
-  const [seletedPostId,setSeletedPostId] = useState("");
+  const [isPostModalOpen, setIsPostModalOpen] = useState(false); // State for PostModal
+  const [selectedPost, setSelectedPost] = useState<any>(null); // State for selected post (for editing)
 
   const [groupSettings, setGroupSettings] = useState({
     name: "",
@@ -84,7 +88,8 @@ export default function GroupInfo() {
     category: "CLUB",
     isPublic: true,
   });
-const router = useRouter();
+
+  const router = useRouter();
   const useToken = () => {
     const storedToken = localStorage.getItem("auth-storage");
     return JSON.parse(storedToken || "{}").token;
@@ -95,7 +100,7 @@ const router = useRouter();
       "Are you sure you want to permanently delete this group?"
     );
     if (!confirmDelete || !group) return;
-  
+
     try {
       const token = useToken();
       const response = await axios.delete(
@@ -104,7 +109,7 @@ const router = useRouter();
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-  
+
       if (response.data.success) {
         router.push("/superadmin-dashboard/manageGroups");
       }
@@ -414,24 +419,92 @@ const router = useRouter();
     }
   };
   const [posts, setPosts] = useState<any[]>([]);
- const { id } = useParams()
-  const getPosts = async() => {
-    try{
-   const posts= await axios.post(`https://s-connect-backend-2.onrender.com/api/group/getPosts`, id)
-   console.log("Postsjjj", posts.data);
-   setPosts(posts.data);
-    }
-    catch(err){
+  const { id } = useParams();
+  const getPosts = async () => {
+    try {
+      const posts = await axios.post(
+        `https://s-connect-backend-2.onrender.com/api/group/getPosts`,
+        id
+      );
+      console.log("Postsjjj", posts.data);
+      setPosts(posts.data);
+    } catch (err) {
       console.error(err);
     }
   };
-console.log("posts",posts)
+  console.log("posts", posts);
   useEffect(() => {
-    getPosts()
+    getPosts();
     fetchGroupData();
   }, [groupId]);
 
+  //   const handleDeletePost = async (postId: string) => {
+  //   try {
+  //     const token = localStorage.getItem("auth-storage")
+  //       ? JSON.parse(localStorage.getItem("auth-storage")!).token
+  //       : "";
 
+  //     await axios.delete(
+  //       `https://s-connect-backend-2.onrender.com/api/group/groups/posts/${postId}`,
+  //       { headers: { Authorization: `Bearer ${token}` } }
+  //     );
+
+  //     setPosts(posts.filter(post => post.id !== postId));
+  //     setStatus({ type: "success", message: "Post deleted successfully" });
+  //   } catch (error) {
+  //     setStatus({ type: "error", message: "Failed to delete post" });
+  //   }
+  // };
+
+  // const handleEditPost = async (postId: string, updatedData: any) => {
+  //   try {
+  //     const token = localStorage.getItem("auth-storage")
+  //       ? JSON.parse(localStorage.getItem("auth-storage")!).token
+  //       : "";
+
+  //     const response = await axios.put(
+  //       `https://s-connect-backend-2.onrender.com/api/group/groups/posts/${postId}`,
+  //       updatedData,
+  //       { headers: { Authorization: `Bearer ${token}` } }
+  //     );
+
+  //     setPosts(posts.map(post => post.id === postId ? response.data : post));
+  //     setStatus({ type: "success", message: "Post updated successfully" });
+  //   } catch (error) {
+  //     setStatus({ type: "error", message: "Failed to update post" });
+  //   }
+  // };
+
+  // Handle post creation/update
+  const handlePostSave = async () => {
+    await fetchGroupData(); // Refresh group data after saving
+  };
+
+  // Handle post deletion
+  const handleDeletePost = async (postId: string) => {
+    try {
+      const token = localStorage.getItem("auth-storage")
+        ? JSON.parse(localStorage.getItem("auth-storage")!).token
+        : "";
+
+      await axios.delete(
+        `https://s-connect-backend-2.onrender.com/api/group/groups/posts/${postId}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setGroup((prev) =>
+        prev
+          ? {
+              ...prev,
+              posts: prev.posts.filter((post) => post.id !== postId),
+            }
+          : null
+      );
+      setStatus({ type: "success", message: "Post deleted successfully" });
+    } catch (error) {
+      setStatus({ type: "error", message: "Failed to delete post" });
+    }
+  };
 
   if (loading) {
     return (
@@ -486,11 +559,21 @@ console.log("posts",posts)
         .toLowerCase()
         .includes(searchTerms.members.toLowerCase())
   );
-  
 
   return (
     <div className="min-h-screen bg-gray-50">
       <SuperAdminNavbar />
+      <CreatePostModal
+      key={selectedPost?.id || "create"}
+        isOpen={isPostModalOpen}
+        onClose={() => {
+          setIsPostModalOpen(false);
+          setSelectedPost(null);
+        }}
+        groupId={groupId}
+        post={selectedPost}
+        onSave={fetchGroupData} // Refresh group data after saving
+      />
       <div className="max-w-7xl mx-auto p-6 pt-20 grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Left Side - Group Details */}
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
@@ -568,8 +651,7 @@ console.log("posts",posts)
 
           {activeTab === "posts" && (
             <div className="space-y-4">
-              <PostDialog postId={seletedPostId} openPostDialog={openPostDialog} setOpenPostDialog={setOpenPostDialog}/>
-              {/* <Button className="bg-red-400" onClick={()=>setOpenPostDialog(true)}>open</Button> */}
+            <PostDialog postId={selectedPost} openPostDialog={openPostDialog} setOpenPostDialog={setOpenPostDialog}/>
               <div className="flex gap-4">
                 <input
                   type="text"
@@ -580,17 +662,17 @@ console.log("posts",posts)
                     setSearchTerms({ ...searchTerms, posts: e.target.value })
                   }
                 />
-                <button 
-                
-                //  onClick={()=>router.push(`/superadmin-dashboard/manage-post/${groupId}`)} 
-                 className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
-                  <Link
-                  href={`/superadmin-dashboard/manage-post/${groupId}`}>
+                <button
+                  onClick={() => {
+                    setSelectedPost(null);
+                    setIsPostModalOpen(true);
+                  }}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+                >
                   Add Post
-                  </Link>
-                  
                 </button>
               </div>
+
               <div className="overflow-x-auto rounded-lg border">
                 <table className="w-full">
                   <thead className="bg-gray-50">
@@ -616,19 +698,29 @@ console.log("posts",posts)
                     {filteredPosts.map((post) => (
                       <tr key={post.id} className="border-t hover:bg-gray-50">
                         <td  onClick={()=>{
-                          setSeletedPostId(post.id)
+                          setSelectedPost(post.id)
                           setOpenPostDialog(true);
                         }} className="p-3 cursor-pointer">{post.id}</td>
                         <td className="p-3">{post.title}</td>
                         <td className="p-3">{post.author.name || post.author.email }</td>
                         <td className="p-3">{post.createdAt}</td>
                         <td className="p-3">{post.likes}</td>
+                        
                         <td className="p-3">
                           <div className="flex gap-2">
-                            <button className="text-yellow-600 hover:text-yellow-700">
+                            <button
+                              onClick={() => {
+                                setSelectedPost(post);
+                                setIsPostModalOpen(true);
+                              }}
+                              className="text-yellow-600 hover:text-yellow-700"
+                            >
                               <FaEdit />
                             </button>
-                            <button className="text-red-600 hover:text-red-700">
+                            <button
+                              onClick={() => handleDeletePost(post.id)}
+                              className="text-red-600 hover:text-red-700"
+                            >
                               <FaTrash />
                             </button>
                           </div>
@@ -638,6 +730,16 @@ console.log("posts",posts)
                   </tbody>
                 </table>
               </div>
+              {/* <CreatePostModal
+                isOpen={isPostModalOpen}
+                onClose={() => {
+                  setIsPostModalOpen(false);
+                  setSelectedPost(null);
+                }}
+                groupId={groupId || undefined}
+                post={selectedPost}
+                onSave={fetchGroupData}
+              /> */}
             </div>
           )}
 

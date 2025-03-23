@@ -3,6 +3,7 @@
 "use client";
 
 import React from "react";
+import {useEffect} from "react"
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import TextAlign from "@tiptap/extension-text-align";
@@ -46,6 +47,12 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ content, onChange }) =>
       onChange(editor.getHTML());
     },
   });
+
+  useEffect(() => {
+    if (editor && content !== editor.getHTML()) {
+      editor.commands.setContent(content);
+    }
+  }, [content, editor]);
 
   return (
     <div>

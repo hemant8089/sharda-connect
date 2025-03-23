@@ -32,15 +32,15 @@ export default function UploadModal({
 
   const handleUrlSubmit = () => {
     if (url.trim()) {
-      onUploadUrl(url.trim());
-      onClose();
+      onUploadUrl(url.trim()); // Update the editor's content with the URL
+      onClose(); // Close the modal
     }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      onSelectFile(e.target.files[0]);
-      onClose();
+      onSelectFile(e.target.files[0]); // Update the editor's content with the file
+      onClose(); // Close the modal
     }
   };
 
@@ -51,6 +51,7 @@ export default function UploadModal({
         className="relative bg-white rounded-lg p-6 w-80 shadow-lg"
       >
         <button
+        type = "button"
           onClick={onClose}
           className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-2xl"
         >
@@ -81,6 +82,7 @@ export default function UploadModal({
             Select from device:
           </label>
           <button
+          type= "button"
             onClick={() => fileInputRef.current?.click()}
             className="w-full bg-green-600 text-white py-1 rounded-md"
           >

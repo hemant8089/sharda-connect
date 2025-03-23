@@ -20,7 +20,7 @@ export default function SuperAdminDashboard() {
 
         {/* Main Content (Scrollable, Takes Majority Space) */}
         <div className="flex-1 overflow-y-auto">
-          <MiddleSection />
+        <MiddleSection groupId={undefined} />
         </div>
 
         {/* Right Sidebar (Fixed, 1:3:1 Layout) */}

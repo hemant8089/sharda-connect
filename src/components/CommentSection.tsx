@@ -15,14 +15,14 @@ export interface Comment {
 }
 
 interface CommentSectionProps {
-  comments: Comment[];
+  comments?: Comment[];
 }
 
 interface ReplyContents {
   [key: string]: string;
 }
 
-export default function CommentSection({ comments }: CommentSectionProps) {
+export default function CommentSection({ comments = [] }: CommentSectionProps) {
     const [replyContents, setReplyContents] = useState<ReplyContents>({});
 
 const handleReply = (commentId: string, content: string): void => {
@@ -87,8 +87,8 @@ const CommentItem = ({ comment, depth = 0 }: { comment: Comment; depth?: number 
 
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-semibold">Comments ({comments.length})</h3>
-      {comments.map((comment) => (
+      <h3 className="text-lg font-semibold">Comments ({comments?.length || 0})</h3>
+      {comments?.map((comment) => (
         <CommentItem key={comment.id} comment={comment} />
       ))}
     </div>

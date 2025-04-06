@@ -52,6 +52,14 @@ A full-stack social platform where university students and faculty can connect b
 - 💬 Group messaging & replies
 - 🧠 AI-powered group matching
 
+
+## Cotributer
+- Akash
+- Prasoon
+- Shivam
+- Nitish
+- Hemant
+
 ---
 
 ## 🛠️ Getting Started

@@ -46,9 +46,10 @@ export default function PostModal({
 
         {/* Content Section: description, image, and content */}
         <section className="mb-6">
-          {post.description && (
-            <p className="text-lg text-blue-700 mb-4">{post.description}</p>
-          )}
+          {/* {post.description && (
+            // <p className="text-lg text-blue-700 mb-4">  {post.description}</p>
+            <div dangerouslySetInnerHTML={{ __html: post.description }} />
+          )} */}
           {post.mainImg && (
             <img
               src={post.mainImg}

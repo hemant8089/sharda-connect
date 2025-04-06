@@ -422,7 +422,7 @@ export default function ManageEvents() {
               {filteredEvents.map((event: Event) => (
                 <tr key={event.id} className="border-t">
                   <td className="p-2">
-                    <div className="flex items-center space-x-3">
+                    {/* <div className="flex items-center space-x-3">
                       {event.mediaUrl ? (
                         <Image
                           src={event.mediaUrl}
@@ -437,10 +437,10 @@ export default function ManageEvents() {
                         </div> // Placeholder if no image
                       )}
                       <span>{event.title}</span>
-                    </div>
+                    </div> */}
                   </td>
                   <td className="p-2">{event.description}</td>
-                  <td className="p-2">
+                  <td className="p-2">  
                     {new Date(event.dateTime).toLocaleString()}
                   </td>
                   <td className="p-2">
